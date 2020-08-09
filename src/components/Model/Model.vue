@@ -35,7 +35,7 @@
     </div>
 
     <!--预警-->
-    <div id="yujing" class="tip-container" style="width: 270px; position: fixed; top: 300px; left: 16px;">
+    <div id="yujing" class="tip-container" style="width: 270px; position: fixed; top: 290px; left: 16px;">
       <div class="tip-title">
         <span><img src="../../../static/icon/预警.png"></span>
         <span>设备总体情况</span>
@@ -61,7 +61,7 @@
     </div>
 
     <!--考勤-->
-    <div id="kaoqin" class="tip-container" style="width: 270px; position: fixed; top: 480px; left: 16px;">
+    <div id="kaoqin" class="tip-container" style="width: 270px; position: fixed; top: 460px; left: 16px;">
       <div class="tip-title">
         <span><img src="../../../static/icon/考勤.png"></span><span>工具</span><span
         class="tip-dropDown">
@@ -117,25 +117,25 @@
         angle: 1,
         flag: false,
         options: [
-          {value: "CK", label: "卡车", x: "100", y: "100"},
-          {value: "YGC", label: "油罐车", x: "200", y: "200"},
-          {value: "DGJ", label: "登高机", x: "300", y: "300"},
-          {value: "DuiGJ", label: "堆高机", x: "0", y: "-500"},
-          {value: "YXTZQ", label: "箱门调转区", x: "-600", y: "-600"},
-          {value: "ZMD", label: "正面吊", x: "400", y: "400"},
-          {value: "ZDHGDD", label: "自动化轨道吊", x: "-100", y: "100"},
-          {value: "DQ", label: "吊桥", x: "-200", y: "200"},
-          {value: "QYC1", label: "牵引车1", x: "-300", y: "300"},
-          {value: "QYC2", label: "牵引车2", x: "-400", y: "400"},
-          {value: "QYC3", label: "牵引车3", x: "-500", y: "500"},
-          {value: "MJ", label: "门机", x: "200", y: "-200"},
-          {value: "MJ10T", label: "门机10T", x: "300", y: "-300"},
-          {value: "MJ16T", label: "门机16T", x: "400", y: "-400"},
-          {value: "LD", label: "龙吊", x: "-100", y: "-100"},
-          {value: "DC", label: "吊车", x: "-200", y: "-200"},
-          {value: "XZCL", label: "行政车辆", x: "-300", y: "-300"},
-          {value: "AVG", label: "AVG", x: "-400", y: "-400"},
-          {value: "ZDHDC", label: "自动化桥吊", x: "0", y: "0"}
+          {value: "CK", label: "卡车", x: "100", y: "100", z: "0"},
+          {value: "YGC", label: "油罐车", x: "200", y: "200", z: "0"},
+          {value: "DGJ", label: "登高机", x: "300", y: "300", z: "30"},
+          {value: "DuiGJ", label: "堆高机", x: "0", y: "-500", z: "10"},
+          {value: "YXTZQ", label: "箱门调转区", x: "-600", y: "-600", z: "150"},
+          {value: "ZMD", label: "正面吊", x: "400", y: "400", z: "10"},
+          {value: "ZDHGDD", label: "自动化轨道吊", x: "-100", y: "100", z: "10"},
+          {value: "DQ", label: "吊桥", x: "-200", y: "200", z: "0"},
+          {value: "QYC1", label: "牵引车1", x: "-300", y: "300", z: "30"},
+          {value: "QYC2", label: "牵引车2", x: "-400", y: "400", z: "30"},
+          {value: "QYC3", label: "牵引车3", x: "-500", y: "500", z: "30"},
+          {value: "MJ", label: "门机", x: "200", y: "-200", z: "10"},
+          {value: "MJ10T", label: "门机10T", x: "300", y: "-300", z: "10"},
+          {value: "MJ16T", label: "门机16T", x: "400", y: "-400", z: "10"},
+          {value: "LD", label: "龙吊", x: "-100", y: "-100", z: "10"},
+          {value: "DC", label: "吊车", x: "-200", y: "-200", z: "10"},
+          {value: "XZCL", label: "行政车辆", x: "-300", y: "-300", z: "10"},
+          {value: "AVG", label: "AVG", x: "-400", y: "-400", z: "10"},
+          {value: "ZDHDC", label: "自动化桥吊", x: "0", y: "0", z: "10"}
         ],
         value: '',
         inputX: '',
@@ -166,7 +166,10 @@
           "XZCL": "0.3",
           "AVG": "0.025",
           "ZDHDC": "0.03"
-        }
+        },
+        FPS: 30, // 设置渲染频率为30FBS，也就是每秒调用渲染器render方法大约30次
+        renderT: 1 / 30, //单位秒  间隔多长时间渲染渲染一次
+        timeS: 0
       }
     },
     mounted() {
@@ -183,7 +186,7 @@
       let pro = [];
       for (let i = 0; i < this.options.length; i++) {
         let p = this.addObjPromisePic(this.options[i]['value'], this.options[i]['label'],
-          this.options[i]['x'], this.options[i]['y']);
+          this.options[i]['x'], this.options[i]['y'], this.options[i]['z']);
         pro.push(p);
       }
       this.loadingInstance = Loading.service({
@@ -192,8 +195,9 @@
         background: "rgba(31,86,185,0.25)"
       });
       Promise.all(pro).then((ok) => {
-        console.log(ok);
+        // console.log(ok);
         this.loadingInstance.close(); // 关闭loading
+        this.animate();
       });
       pro = null; /*手动置空*/
       /*用promise方式加载模型 结束*/
@@ -202,7 +206,7 @@
       // {value: "DGJ", label: "堆高机", x: "300", y: "300"},
       // this.addObjPic("DGJ", "堆高机", "300", "300");
       // this.render();
-      this.animate();
+
     },
     beforeDestroy() {
       this.scene = null;
@@ -278,7 +282,7 @@
         // 基础材质 透明偏蓝
         this.basicMat = new THREE.MeshBasicMaterial({
           opacity: 0.6,
-          color: 0x1f56b9,
+          color: 0x575757,
           side: THREE.BackSide,
           transparent: true,
         });
@@ -290,7 +294,7 @@
         let pointLight = new THREE.PointLight(0xffffff, 0.8);
         this.camera = new THREE.PerspectiveCamera(this.fov, window.innerWidth / window.innerHeight, 1, 10000);
         // this.camera.position.set(300, 300, 150);
-        this.camera.position.set(0, 1600, 0);
+        this.camera.position.set(-500, 1040, 1050);
         this.camera.up.set(0, 1, 0);
         // this.camera.up.set(1, 0, 0);
         // this.camera.up.set(0, 0, 1);
@@ -304,7 +308,7 @@
           alpha: true,
         });//会在body里面生成一个canvas标签,
         this.renderer.setPixelRatio(window.devicePixelRatio);//为了兼容高清屏幕
-        this.renderer.setClearColor(new THREE.Color(0x303030));//为了兼容高清屏幕
+        this.renderer.setClearColor(new THREE.Color(0x303030));
         this.renderer.setSize(window.innerWidth, window.innerHeight);
 
         //初始化控制器
@@ -323,8 +327,8 @@
 
 
         // 参数设置坐标轴大小,150，编写程序的时候，可以根据相机参数调整为合适的值，如果太小可以无法显示出来
-        const axesHelper = new THREE.AxesHelper(200);
-        this.scene.add(axesHelper);
+        // const axesHelper = new THREE.AxesHelper(200);
+        // this.scene.add(axesHelper);
 
         const container = document.getElementById('container');
         container.appendChild(this.renderer.domElement);
@@ -361,30 +365,14 @@
         if (intersects.length > 0) {
 
           if (self.nowSelect) {
-            // self.lastSelect = self.nowSelect;
-            // self.lastSelect.children.forEach(item => { // 高亮当前选中对象的透明度
-            //   item.material.opacity = 0.6;
-            // })
             self.nowSelect.check = false;
           }
 
           self.nowSelect = intersects[0].object.parent; // 当前选中的对象
           self.selectedName = self.nowSelect.name;
           self.nowSelect.check = true;
-          //
-          // self.nowSelect.children.forEach(item => { // 高亮当前选中对象高亮
-          //   item.material.opacity = self.selectOpacity;
-          // });
-
 
           self.flag = false;
-          // let {x, y, z} = intersects[0].point;
-          // let p2 = {
-          //   x: 400,
-          //   y: 400,
-          //   z: 400
-          // };
-
           for (let i = 0; i < this.options.length; i++) {
             if (this.options[i].label == self.nowSelect.name) {
               self.change(this.options[i].value)
@@ -395,43 +383,84 @@
       },
       animate() {
         let detal = this.clock.getDelta();
-
-        this.raycaster.setFromCamera(this.mouse, this.camera);
-        const intersection = this.raycaster.intersectObjects(this.itemList);
-        const nameBox = document.getElementById("name-box");
-        if (intersection.length > 0) {
-          // 名称提示
-          console.log(intersection[0]);
-          let str = `<div style="font-size: 18px;">名称 :${intersection[0].object.parent.name}</div>
+        this.timeS = this.timeS + detal;
+        if (this.timeS > this.renderT) {
+          // console.log("执行");
+          this.raycaster.setFromCamera(this.mouse, this.camera);
+          const intersection = this.raycaster.intersectObjects(this.itemList);
+          const nameBox = document.getElementById("name-box");
+          if (intersection.length > 0) {
+            // 名称提示
+            // console.log(intersection[0]);
+            let str = `<div style="font-size: 18px;">名称 :${intersection[0].object.parent.name}</div>
                      <div style="font-size: 16px">x坐标 :${intersection[0].object.parent.position.x}</div>
                      <div style="font-size: 16px">y坐标 :${intersection[0].object.parent.position.y}</div>
                      <div style="font-size: 16px">z坐标 :${intersection[0].object.parent.position.z}</div>
                      <div style="font-size: 16px">当前状态 :${intersection[0].object.parent.check ? '选中' : '未选中'}</div>
         `
-          console.log(intersection[0].object.parent);
-          nameBox.innerHTML = str;
-          nameBox.style.display = "block";
-          nameBox.style.top = this.mousePosition.y + 'px'; // 跟随鼠标的位置
-          nameBox.style.left = this.mousePosition.x + 30 + 'px';
-        } else {
-          nameBox.style.display = "none";
-        }
-
-        this.controls.update(detal); // 更新控制器
-        TWEEN.update(); // 补间动画
-
-
-        this.render(); //  静态动画  可以将render写在chang里面
-
-        if (this.flag) {
-          this.camera.position.x = 800 * Math.cos(this.angle * Math.PI / 180);
-          this.camera.position.z = 800 * Math.sin(this.angle * Math.PI / 180);
-          this.camera.position.y = 1000;
-          this.angle += 0.05;
-          if (this.angle > 360) {
-            this.angle = 0;
+            // console.log(intersection[0].object.parent);
+            nameBox.innerHTML = str;
+            nameBox.style.display = "block";
+            nameBox.style.top = this.mousePosition.y + 'px'; // 跟随鼠标的位置
+            nameBox.style.left = this.mousePosition.x + 30 + 'px';
+          } else {
+            nameBox.style.display = "none";
           }
+
+          this.controls.update(detal); // 更新控制器
+          TWEEN.update(); // 补间动画
+
+
+          this.render(); //  静态动画  可以将render写在chang里面
+
+          if (this.flag) {
+            this.camera.position.x = 800 * Math.cos(this.angle * Math.PI / 180);
+            this.camera.position.z = 800 * Math.sin(this.angle * Math.PI / 180);
+            this.camera.position.y = 1000;
+            this.angle += 0.05;
+            if (this.angle > 360) {
+              this.angle = 0;
+            }
+          }
+          // console.log(`调用.render时间间隔`,this.timeS*1000+'毫秒');
+          this.timeS = 0;
         }
+        // this.raycaster.setFromCamera(this.mouse, this.camera);
+        // const intersection = this.raycaster.intersectObjects(this.itemList);
+        // const nameBox = document.getElementById("name-box");
+        // if (intersection.length > 0) {
+        //   // 名称提示
+        //   // console.log(intersection[0]);
+        //   let str = `<div style="font-size: 18px;">名称 :${intersection[0].object.parent.name}</div>
+        //              <div style="font-size: 16px">x坐标 :${intersection[0].object.parent.position.x}</div>
+        //              <div style="font-size: 16px">y坐标 :${intersection[0].object.parent.position.y}</div>
+        //              <div style="font-size: 16px">z坐标 :${intersection[0].object.parent.position.z}</div>
+        //              <div style="font-size: 16px">当前状态 :${intersection[0].object.parent.check ? '选中' : '未选中'}</div>
+        // `
+        //   // console.log(intersection[0].object.parent);
+        //   nameBox.innerHTML = str;
+        //   nameBox.style.display = "block";
+        //   nameBox.style.top = this.mousePosition.y + 'px'; // 跟随鼠标的位置
+        //   nameBox.style.left = this.mousePosition.x + 30 + 'px';
+        // } else {
+        //   nameBox.style.display = "none";
+        // }
+        //
+        // this.controls.update(detal); // 更新控制器
+        // TWEEN.update(); // 补间动画
+        //
+        //
+        // this.render(); //  静态动画  可以将render写在chang里面
+        //
+        // if (this.flag) {
+        //   this.camera.position.x = 800 * Math.cos(this.angle * Math.PI / 180);
+        //   this.camera.position.z = 800 * Math.sin(this.angle * Math.PI / 180);
+        //   this.camera.position.y = 1000;
+        //   this.angle += 0.05;
+        //   if (this.angle > 360) {
+        //     this.angle = 0;
+        //   }
+        // }
 
         this.req = requestAnimationFrame(this.animate);
       },
@@ -439,7 +468,6 @@
         this.renderer.render(this.scene, this.camera);
       },
       addObjPic(val, name, x, y) {
-        // this.addObj(this.options[i]['value'], this.options[i]['label'],this.options[i]['x'], this.options[i]['y']);
         let self = this;
         self.flag = false;
         return new Promise(function (resolve, reject) {
@@ -482,7 +510,6 @@
 
       },
       addObj(val, name, x, y) {
-        // this.addObj(this.options[i]['value'], this.options[i]['label'],this.options[i]['x'], this.options[i]['y']);
         let self = this;
         self.flag = false;
         self.animateList = [];
@@ -532,7 +559,7 @@
         );
 
       },
-      addObjPromisePic(val, name, x, y) {
+      addObjPromisePic(val, name, x, y, z) {
         let self = this;
         return new Promise(function (resolve, reject) {
           new GLTFLoader().setDRACOLoader(self.dracoLoader).load(
@@ -545,7 +572,7 @@
               // let scale = 0.03;
               model.scale.set(scale, scale, scale);
               // model.rotateX(-Math.PI / 2);//绕x轴旋转π/4
-              model.position.set(x, "10", y);
+              model.position.set(x, z, y);
               self.scene.add(model);
 
               self.itemList.push(...model.children);
@@ -648,36 +675,36 @@
           if (this.options[i].value == val) {
             let obj = this.scene.getObjectByName(this.options[i].label);
             let res = this.getBound(obj);
-            console.log('-1');
-            console.log(obj);
+            // console.log('-1');
+            // console.log(obj);
             if (obj.position.x >= 0 && obj.position.z >= 0) {
               self.animateCamera(self.camera.position, {
                 x: res.max.x + 50,
                 y: res.max.y + 50,
                 z: res.max.z + 50
               });
-              console.log("0");
-            } else if (obj.position.x < 0 && obj.position.z < 0) {
+              // console.log("0");
+            } else if (obj.position.x <= 0 && obj.position.z <= 0) {
               self.animateCamera(self.camera.position, {
                 x: res.min.x - 50,
                 y: res.max.y + 50,
                 z: res.min.z - 50
               });
-              console.log("1");
-            } else if (obj.position.x < 0 && obj.position.z > 0) {
+              // console.log("1");
+            } else if (obj.position.x <= 0 && obj.position.z >= 0) {
               self.animateCamera(self.camera.position, {
                 x: res.min.x - 50,
                 y: res.max.y + 50,
                 z: res.max.z + 50
               });
-              console.log("2");
-            } else if (obj.position.x > 0 && obj.position.z < 0) {
+              // console.log("2");
+            } else if (obj.position.x >= 0 && obj.position.z <= 0) {
               self.animateCamera(self.camera.position, {
                 x: res.max.x + 50,
                 y: res.max.y + 50,
                 z: res.min.z - 50
               });
-              console.log("3");
+              // console.log("3");
             }
             break;
           }
